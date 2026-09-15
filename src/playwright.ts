@@ -28,11 +28,20 @@ function locator(page: Page, target: Target): Locator {
   throw new Error('target requires selector, testId, role, or text');
 }
 
-async function runStep(page: Page, step: ScenarioStep, screenshotsDir: string, prefix: string): Promise<void> {
+async function runStep(
+  page: Page,
+  step: ScenarioStep,
+  screenshotsDir: string,
+  prefix: string,
+  useTouch: boolean,
+): Promise<void> {
   switch (step.action) {
-    case 'tap':
-      await locator(page, step.target).click();
+    case 'tap': {
+      const target = locator(page, step.target);
+      if (useTouch) await target.tap();
+      else await target.click();
       return;
+    }
     case 'fill':
       await locator(page, step.target).fill(step.value);
       return;
@@ -42,11 +51,9 @@ async function runStep(page: Page, step: ScenarioStep, screenshotsDir: string, p
     case 'expectVisible':
       await locator(page, step.target).waitFor({ state: 'visible' });
       return;
-    case 'expectText': {
-      const value = await locator(page, step.target).textContent();
-      if (!value?.includes(step.text)) throw new Error(`expected text '${step.text}', got '${value ?? ''}'`);
+    case 'expectText':
+      await locator(page, step.target).filter({ hasText: step.text }).waitFor({ state: 'visible' });
       return;
-    }
     case 'wait':
       await page.waitForTimeout(step.ms);
       return;
@@ -197,7 +204,7 @@ export async function runPlaywrightAnalysis(config: MobileAnalysisConfig, output
         try {
           await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
           for (const step of scenario.steps) {
-            await runStep(page, step, screenshotsDir, prefix);
+            await runStep(page, step, screenshotsDir, prefix, device.hasTouch);
           }
           findings.push(...await inspectPage(page, device, scenario, url));
         } catch (error) {
