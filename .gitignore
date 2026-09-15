@@ -1,0 +1,5 @@
+node_modules/
+dist/
+mobile-analysis-output/
+.unlighthouse/
+.DS_Store

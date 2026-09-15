@@ -1,0 +1,64 @@
+name: Reusable mobile analysis
+
+on:
+  workflow_call:
+    inputs:
+      target_url:
+        description: Deployed web URL to analyze.
+        required: true
+        type: string
+      config_path:
+        description: Path to mobile-analysis config in the calling repository.
+        required: false
+        default: mobile-analysis.config.json
+        type: string
+      run_unlighthouse:
+        description: Run the site-wide Unlighthouse layer.
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout consumer
+        uses: actions/checkout@v4
+      - name: Checkout mobile-analysis
+        uses: actions/checkout@v4
+        with:
+          repository: moritzbrantner/mobile-analysis
+          ref: main
+          path: .mobile-analysis-tool
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install analyzer
+        working-directory: .mobile-analysis-tool
+        run: |
+          npm install
+          npx playwright install --with-deps chromium webkit
+          npm run build
+      - name: Install Unlighthouse
+        if: ${{ inputs.run_unlighthouse }}
+        run: npm install --global @unlighthouse/cli@0.18.0 puppeteer@25.11.0
+      - name: Analyze deployed app
+        run: |
+          EXTRA=""
+          if [ "${{ inputs.run_unlighthouse }}" != "true" ]; then EXTRA="--skip-unlighthouse"; fi
+          node .mobile-analysis-tool/dist/src/cli.js analyze \
+            --config "${{ inputs.config_path }}" \
+            --target-url "${{ inputs.target_url }}" \
+            --out mobile-analysis-output \
+            $EXTRA
+      - name: Upload evidence bundle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-analysis
+          path: mobile-analysis-output
+          if-no-files-found: warn
+          retention-days: 14
