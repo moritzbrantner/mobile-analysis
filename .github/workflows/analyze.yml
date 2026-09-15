@@ -27,33 +27,26 @@ jobs:
     steps:
       - name: Checkout consumer
         uses: actions/checkout@v7
-      - name: Checkout mobile-analysis
+
+      - name: Checkout exact mobile-analysis workflow revision
         uses: actions/checkout@v7
         with:
           repository: moritzbrantner/mobile-analysis
-          ref: main
+          ref: ${{ job.workflow_sha }}
           path: .mobile-analysis-tool
+
       - uses: actions/setup-node@v7
         with:
           node-version: '22'
-      - name: Install analyzer
-        working-directory: .mobile-analysis-tool
-        run: |
-          npm install
-          npx playwright install --with-deps chromium webkit
-          npm run build
-      - name: Install Unlighthouse
-        if: ${{ inputs.run_unlighthouse }}
-        run: npm install --global @unlighthouse/cli@0.18.0 puppeteer@25.11.0
+
       - name: Analyze deployed app
-        run: |
-          EXTRA=""
-          if [ "${{ inputs.run_unlighthouse }}" != "true" ]; then EXTRA="--skip-unlighthouse"; fi
-          node .mobile-analysis-tool/dist/src/cli.js analyze \
-            --config "${{ inputs.config_path }}" \
-            --target-url "${{ inputs.target_url }}" \
-            --out mobile-analysis-output \
-            $EXTRA
+        uses: ./.mobile-analysis-tool
+        with:
+          target_url: ${{ inputs.target_url }}
+          config_path: ${{ inputs.config_path }}
+          output_dir: mobile-analysis-output
+          run_unlighthouse: ${{ inputs.run_unlighthouse }}
+
       - name: Upload evidence bundle
         if: always()
         uses: actions/upload-artifact@v7
