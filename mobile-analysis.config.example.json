@@ -1,0 +1,27 @@
+{
+  "target": {
+    "name": "Example app",
+    "baseUrl": "https://example.com"
+  },
+  "routes": ["/", "/examples"],
+  "unlighthouse": {
+    "enabled": true,
+    "budget": 80
+  },
+  "scenarios": [
+    {
+      "id": "open-example",
+      "name": "Open a bundled example",
+      "path": "/examples",
+      "steps": [
+        { "action": "tap", "target": { "role": "button", "name": "Basic example" } },
+        { "action": "expectVisible", "target": { "text": "Example loaded" } },
+        { "action": "screenshot", "name": "example-loaded" }
+      ]
+    }
+  ],
+  "native": {
+    "enabled": false,
+    "appId": "dev.example.app"
+  }
+}

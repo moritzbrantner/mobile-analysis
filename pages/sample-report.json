@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "createdAt": "2026-09-15T12:00:00.000Z",
+  "target": { "name": "Example app", "baseUrl": "https://example.com" },
+  "revision": "example",
+  "environment": { "node": "v22", "platform": "linux", "arch": "x64" },
+  "summary": { "errors": 1, "warnings": 1, "info": 0, "scenariosPassed": 3, "scenariosFailed": 1 },
+  "adapters": [
+    { "name": "playwright", "status": "failed", "durationMs": 1400 },
+    { "name": "unlighthouse", "status": "passed", "durationMs": 6200 },
+    { "name": "maestro", "status": "skipped", "durationMs": 5 }
+  ],
+  "scenarios": [
+    { "scenarioId": "settings", "scenarioName": "Open settings", "deviceId": "iphone-small", "status": "passed", "durationMs": 350, "url": "https://example.com/" },
+    { "scenarioId": "settings", "scenarioName": "Open settings", "deviceId": "pixel", "status": "failed", "durationMs": 420, "url": "https://example.com/" }
+  ],
+  "findings": [
+    { "id": "overflow", "source": "playwright", "severity": "error", "title": "Horizontal overflow on mobile viewport", "details": "Document width 440px exceeds viewport 412px.", "deviceId": "pixel", "scenarioId": "settings" },
+    { "id": "touch", "source": "playwright", "severity": "warning", "title": "1 small interactive target(s) found", "details": "Menu: 32x32", "deviceId": "iphone-small", "scenarioId": "settings" }
+  ]
+}

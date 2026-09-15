@@ -1,0 +1,30 @@
+{
+  "name": "mobile-analysis",
+  "version": "0.1.0",
+  "description": "Reusable mobile web and native analysis with portable evidence bundles.",
+  "type": "module",
+  "bin": {
+    "mobile-analysis": "dist/src/cli.js"
+  },
+  "exports": {
+    ".": "./dist/src/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check:pages": "node --check pages/app.js",
+    "test": "node --test dist/tests/*.test.js",
+    "ci": "npm run typecheck && npm run check:pages && npm run build && npm test",
+    "setup:browsers": "playwright install chromium webkit"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "playwright": "1.63.0"
+  },
+  "devDependencies": {
+    "@types/node": "26.5.1",
+    "typescript": "7.0.2"
+  }
+}
