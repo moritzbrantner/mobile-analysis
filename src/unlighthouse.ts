@@ -9,6 +9,10 @@ export interface UnlighthouseResult {
   details: string;
 }
 
+export function resolveUnlighthouseUrls(config: MobileAnalysisConfig): string[] {
+  return config.routes.map((route) => new URL(route, config.target.baseUrl).toString());
+}
+
 export async function runUnlighthouse(config: MobileAnalysisConfig, outputDir: string): Promise<UnlighthouseResult> {
   if (!config.unlighthouse.enabled) {
     return { status: 'skipped', findings: [], details: 'Disabled by configuration.' };
@@ -24,7 +28,8 @@ export async function runUnlighthouse(config: MobileAnalysisConfig, outputDir: s
     '--reporter', 'jsonExpanded',
     '--output-path', targetDir,
   ];
-  if (config.routes.length > 0) args.push('--urls', config.routes.join(','));
+  const urls = resolveUnlighthouseUrls(config);
+  if (urls.length > 0) args.push('--urls', urls.join(','));
 
   const result = spawnSync('unlighthouse-ci', args, { encoding: 'utf8' });
   await writeFile(join(targetDir, 'stdout.log'), result.stdout ?? '', 'utf8');
