@@ -68,7 +68,23 @@ async function inspectPage(page: Page, device: DeviceSpec, scenario: Scenario, u
   const metrics = await page.evaluate(() => ({
     viewportWidth: window.innerWidth,
     documentWidth: document.documentElement.scrollWidth,
-    smallTargets: Array.from(document.querySelectorAll('button,a,input,select,textarea,[role="button"]'))
+    smallTargets: Array.from(document.querySelectorAll([
+      'button',
+      'a',
+      'input',
+      'select',
+      'textarea',
+      '[role="button"]',
+      '[role="link"]',
+      '[role="checkbox"]',
+      '[role="radio"]',
+      '[role="tab"]',
+      '[role="menuitem"]',
+      '[role="menuitemcheckbox"]',
+      '[role="menuitemradio"]',
+      '[role="option"]',
+      '[role="switch"]',
+    ].join(',')))
       .filter((element) => {
         const rect = element.getBoundingClientRect();
         const style = getComputedStyle(element);
