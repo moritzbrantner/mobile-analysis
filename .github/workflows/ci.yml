@@ -19,3 +19,34 @@ jobs:
       - run: npm install
       - run: npx playwright install --with-deps chromium webkit
       - run: npm run ci
+
+  composite-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+      - name: Start fixture server
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory tests/action-fixture > /tmp/mobile-analysis-fixture.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173/ > /dev/null; then
+              exit 0
+            fi
+            sleep 0.25
+          done
+          cat /tmp/mobile-analysis-fixture.log
+          exit 1
+      - name: Run local composite action
+        uses: ./
+        with:
+          target_url: http://127.0.0.1:4173/
+          config_path: tests/action.config.json
+          output_dir: action-output
+          run_unlighthouse: 'false'
+      - name: Verify evidence bundle
+        run: |
+          test -s action-output/analysis.json
+          test -s action-output/summary.md
+          node -e "const report=require('./action-output/analysis.json'); if(report.summary.errors!==0 || report.summary.scenariosFailed!==0) process.exit(1)"
