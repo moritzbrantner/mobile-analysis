@@ -51,7 +51,7 @@ test('executes the same mobile flow on Chromium and WebKit', async () => {
     assert.ok(
       result.findings.some(
         (finding) => finding.title.includes('small interactive target')
-          && finding.details.includes('Tiny option: 28x28'),
+          && finding.details?.includes('Tiny option: 28x28') === true,
       ),
       'expected ARIA checkbox to be inspected as a touch target',
     );
