@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { resolveUnlighthouseUrls } from '../src/unlighthouse.js';
+import { resolveUnlighthouseUrls, unlighthouseRuntimeConfig } from '../src/unlighthouse.js';
 import type { MobileAnalysisConfig } from '../src/model.js';
 
 function config(routes: string[]): MobileAnalysisConfig {
@@ -39,4 +39,18 @@ test('preserves explicitly origin-rooted routes', () => {
     resolveUnlighthouseUrls(config(['/health/'])),
     ['https://example.github.io/health/'],
   );
+});
+
+test('uses browser-applied throttling with one Lighthouse worker', () => {
+  assert.deepEqual(unlighthouseRuntimeConfig(), {
+    scanner: {
+      throttle: true,
+    },
+    lighthouseOptions: {
+      throttlingMethod: 'devtools',
+    },
+    puppeteerClusterOptions: {
+      maxConcurrency: 1,
+    },
+  });
 });

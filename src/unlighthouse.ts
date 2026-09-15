@@ -13,6 +13,24 @@ export function resolveUnlighthouseUrls(config: MobileAnalysisConfig): string[] 
   return config.routes.map((route) => new URL(route, config.target.baseUrl).toString());
 }
 
+export function unlighthouseRuntimeConfig() {
+  return {
+    scanner: {
+      throttle: true,
+    },
+    lighthouseOptions: {
+      throttlingMethod: 'devtools',
+    },
+    puppeteerClusterOptions: {
+      maxConcurrency: 1,
+    },
+  } as const;
+}
+
+function serializeUnlighthouseRuntimeConfig(): string {
+  return `export default ${JSON.stringify(unlighthouseRuntimeConfig(), null, 2)};\n`;
+}
+
 export async function runUnlighthouse(config: MobileAnalysisConfig, outputDir: string): Promise<UnlighthouseResult> {
   if (!config.unlighthouse.enabled) {
     return { status: 'skipped', findings: [], details: 'Disabled by configuration.' };
@@ -20,8 +38,12 @@ export async function runUnlighthouse(config: MobileAnalysisConfig, outputDir: s
 
   const targetDir = join(outputDir, 'unlighthouse');
   await mkdir(targetDir, { recursive: true });
+  const runtimeConfigPath = join(targetDir, 'unlighthouse.config.mjs');
+  await writeFile(runtimeConfigPath, serializeUnlighthouseRuntimeConfig(), 'utf8');
+
   const args = [
     '--site', config.target.baseUrl,
+    '--config-file', runtimeConfigPath,
     '--budget', String(config.unlighthouse.budget),
     '--mobile',
     '--build-static',
