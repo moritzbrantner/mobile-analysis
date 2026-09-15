@@ -11,6 +11,7 @@ const html = `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>button{min-width:48px;min-height:48px}</style>
 <button aria-label="Settings" onclick="document.querySelector('#preferences').hidden=false">Settings</button>
+<div role="checkbox" aria-label="Tiny option" style="width:28px;height:28px"></div>
 <div id="preferences" hidden>Preferences</div>`;
 
 test('executes the same mobile flow on Chromium and WebKit', async () => {
@@ -47,6 +48,13 @@ test('executes the same mobile flow on Chromium and WebKit', async () => {
     assert.equal(result.scenarios.length, 4);
     assert.equal(result.scenarios.filter((scenario) => scenario.status === 'failed').length, 0);
     assert.equal(result.findings.filter((finding) => finding.severity === 'error').length, 0);
+    assert.ok(
+      result.findings.some(
+        (finding) => finding.title.includes('small interactive target')
+          && finding.details.includes('Tiny option: 28x28'),
+      ),
+      'expected ARIA checkbox to be inspected as a touch target',
+    );
 
     const screenshots = await readdir(join(outputDir, 'screenshots'));
     assert.equal(screenshots.filter((name) => name.endsWith('-final.png')).length, 4);
