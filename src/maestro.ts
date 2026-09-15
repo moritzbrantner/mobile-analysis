@@ -1,16 +1,18 @@
 import { spawnSync } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import type { AdapterState, Finding, MobileAnalysisConfig, Scenario, Target } from './model.js';
 
 function yamlString(value: string): string {
   return JSON.stringify(value);
 }
 
-function selector(target: Target): string | undefined {
-  if (target.testId) return `id: ${yamlString(target.testId)}`;
+function selectorLines(command: 'tapOn' | 'assertVisible', target: Target): string[] | undefined {
+  if (target.testId) {
+    return [`- ${command}:`, `    id: ${yamlString(target.testId)}`];
+  }
   const visible = target.name ?? target.text;
-  if (visible) return yamlString(visible);
+  if (visible) return [`- ${command}: ${yamlString(visible)}`];
   return undefined;
 }
 
@@ -21,15 +23,15 @@ export function buildMaestroFlow(appId: string, scenario: Scenario): { yaml: str
   for (const step of scenario.steps) {
     switch (step.action) {
       case 'tap': {
-        const value = selector(step.target);
-        if (value) lines.push(`- tapOn: ${value}`);
-        else warnings.push(`tap step has no Maestro-compatible target`);
+        const selector = selectorLines('tapOn', step.target);
+        if (selector) lines.push(...selector);
+        else warnings.push('tap step has no Maestro-compatible target');
         break;
       }
       case 'fill': {
-        const value = selector(step.target);
-        if (value) lines.push(`- tapOn: ${value}`);
-        else warnings.push(`fill step has no Maestro-compatible target`);
+        const selector = selectorLines('tapOn', step.target);
+        if (selector) lines.push(...selector);
+        else warnings.push('fill step has no Maestro-compatible target');
         lines.push(`- inputText: ${yamlString(step.value)}`);
         break;
       }
@@ -37,9 +39,9 @@ export function buildMaestroFlow(appId: string, scenario: Scenario): { yaml: str
         lines.push(`- pressKey: ${yamlString(step.key)}`);
         break;
       case 'expectVisible': {
-        const value = selector(step.target);
-        if (value) lines.push(`- assertVisible: ${value}`);
-        else warnings.push(`expectVisible step has no Maestro-compatible target`);
+        const selector = selectorLines('assertVisible', step.target);
+        if (selector) lines.push(...selector);
+        else warnings.push('expectVisible step has no Maestro-compatible target');
         break;
       }
       case 'expectText':
@@ -94,12 +96,12 @@ export async function prepareAndMaybeRunMaestro(
     const result = spawnSync('maestro', ['test', path], { encoding: 'utf8' });
     if (result.error || result.status !== 0) {
       findings.push({
-        id: `maestro-run:${path}`,
+        id: `maestro-run:${relative(outputDir, path)}`,
         source: 'maestro',
         severity: 'error',
         title: 'Maestro native flow failed',
         details: result.error?.message ?? result.stderr ?? `Exit ${result.status ?? 'unknown'}`,
-        artifact: path.replace(`${outputDir}/`, ''),
+        artifact: relative(outputDir, path).replaceAll('\\', '/'),
       });
     }
   }
