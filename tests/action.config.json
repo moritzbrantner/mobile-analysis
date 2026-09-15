@@ -1,0 +1,22 @@
+{
+  "target": {
+    "name": "Composite action fixture",
+    "baseUrl": "http://127.0.0.1:4173/"
+  },
+  "routes": ["./"],
+  "unlighthouse": {
+    "enabled": false,
+    "budget": 80
+  },
+  "scenarios": [
+    {
+      "id": "settings",
+      "name": "Open settings",
+      "path": "./",
+      "steps": [
+        { "action": "tap", "target": { "role": "button", "name": "Settings" } },
+        { "action": "expectVisible", "target": { "text": "Preferences" } }
+      ]
+    }
+  ]
+}

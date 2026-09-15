@@ -1,0 +1,54 @@
+name: Mobile analysis
+description: Run mobile web analysis inside an existing consumer job.
+
+inputs:
+  target_url:
+    description: Base URL to analyze. This can point at a local preview server.
+    required: true
+  config_path:
+    description: Consumer repository path to mobile-analysis.config.json.
+    required: false
+    default: mobile-analysis.config.json
+  output_dir:
+    description: Consumer repository path for the portable evidence bundle.
+    required: false
+    default: mobile-analysis-output
+  run_unlighthouse:
+    description: Run the Unlighthouse mobile audit in addition to Playwright scenarios.
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - name: Install mobile-analysis dependencies
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        npm install
+        npx playwright install --with-deps chromium webkit
+        npm run build
+
+    - name: Install Unlighthouse
+      if: ${{ inputs.run_unlighthouse == 'true' }}
+      shell: bash
+      run: npm install --global @unlighthouse/cli@0.18.0 puppeteer@25.11.0
+
+    - name: Analyze mobile surface
+      shell: bash
+      env:
+        MOBILE_ANALYSIS_TARGET_URL: ${{ inputs.target_url }}
+        MOBILE_ANALYSIS_CONFIG_PATH: ${{ inputs.config_path }}
+        MOBILE_ANALYSIS_OUTPUT_DIR: ${{ inputs.output_dir }}
+        MOBILE_ANALYSIS_RUN_UNLIGHTHOUSE: ${{ inputs.run_unlighthouse }}
+      run: |
+        args=(
+          analyze
+          --config "$GITHUB_WORKSPACE/$MOBILE_ANALYSIS_CONFIG_PATH"
+          --target-url "$MOBILE_ANALYSIS_TARGET_URL"
+          --out "$GITHUB_WORKSPACE/$MOBILE_ANALYSIS_OUTPUT_DIR"
+        )
+        if [[ "$MOBILE_ANALYSIS_RUN_UNLIGHTHOUSE" != "true" ]]; then
+          args+=(--skip-unlighthouse)
+        fi
+        node "$GITHUB_ACTION_PATH/dist/src/cli.js" "${args[@]}"
