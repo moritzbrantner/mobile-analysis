@@ -26,14 +26,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout consumer
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Checkout mobile-analysis
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: moritzbrantner/mobile-analysis
           ref: main
           path: .mobile-analysis-tool
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
       - name: Install analyzer
@@ -56,7 +56,7 @@ jobs:
             $EXTRA
       - name: Upload evidence bundle
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mobile-analysis
           path: mobile-analysis-output

@@ -12,8 +12,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check:pages": "node --check pages/app.js",
     "test": "node --test dist/tests/*.test.js",
-    "ci": "npm run typecheck && npm run build && npm test",
+    "ci": "npm run typecheck && npm run check:pages && npm run build && npm test",
     "setup:browsers": "playwright install chromium webkit"
   },
   "engines": {
