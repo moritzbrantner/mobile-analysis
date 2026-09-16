@@ -16,6 +16,17 @@ function summary(findings: Finding[], scenarios: AnalysisReport['scenarios']): A
   };
 }
 
+export function analysisRevision(
+  environment: Record<string, string | undefined> = process.env,
+): string | undefined {
+  const revision = environment.MOBILE_ANALYSIS_REVISION?.trim() || environment.GITHUB_SHA?.trim();
+  if (!revision) return undefined;
+  if (!/^[0-9a-f]{40}$/i.test(revision)) {
+    throw new Error('mobile-analysis revision evidence must be an exact 40-character Git commit SHA');
+  }
+  return revision.toLowerCase();
+}
+
 export async function analyzeMobile(config: MobileAnalysisConfig, options: AnalyzeOptions): Promise<AnalysisReport> {
   await rm(options.outputDir, { recursive: true, force: true });
   await mkdir(options.outputDir, { recursive: true });
@@ -54,11 +65,12 @@ export async function analyzeMobile(config: MobileAnalysisConfig, options: Analy
     details: maestro.details,
   });
 
+  const revision = analysisRevision();
   const report: AnalysisReport = {
     schemaVersion: 1,
     createdAt: new Date().toISOString(),
     target: config.target,
-    ...(process.env.GITHUB_SHA ? { revision: process.env.GITHUB_SHA } : {}),
+    ...(revision ? { revision } : {}),
     environment: {
       node: process.version,
       platform: process.platform,
