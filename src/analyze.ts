@@ -16,8 +16,10 @@ function summary(findings: Finding[], scenarios: AnalysisReport['scenarios']): A
   };
 }
 
-function analysisRevision(): string | undefined {
-  const revision = process.env.MOBILE_ANALYSIS_REVISION?.trim() || process.env.GITHUB_SHA?.trim();
+export function analysisRevision(
+  environment: Record<string, string | undefined> = process.env,
+): string | undefined {
+  const revision = environment.MOBILE_ANALYSIS_REVISION?.trim() || environment.GITHUB_SHA?.trim();
   if (!revision) return undefined;
   if (!/^[0-9a-f]{40}$/i.test(revision)) {
     throw new Error('mobile-analysis revision evidence must be an exact 40-character Git commit SHA');
