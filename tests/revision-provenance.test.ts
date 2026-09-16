@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import process from 'node:process';
 import test from 'node:test';
 import { analysisRevision } from '../src/analyze.js';
 
@@ -27,7 +28,7 @@ test('revision provenance rejects floating or malformed identities', () => {
 });
 
 test('reusable workflow checks out and forwards the explicit consumer revision', () => {
-  const root = join(import.meta.dirname, '..');
+  const root = process.cwd();
   const action = readFileSync(join(root, 'action.yml'), 'utf8');
   const workflow = readFileSync(join(root, '.github', 'workflows', 'analyze.yml'), 'utf8');
 
