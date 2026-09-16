@@ -17,6 +17,10 @@ inputs:
     description: Run the Unlighthouse mobile audit in addition to Playwright scenarios.
     required: false
     default: 'true'
+  revision:
+    description: Exact consumer Git revision represented by this analysis.
+    required: false
+    default: ''
 
 runs:
   using: composite
@@ -41,6 +45,7 @@ runs:
         MOBILE_ANALYSIS_CONFIG_PATH: ${{ inputs.config_path }}
         MOBILE_ANALYSIS_OUTPUT_DIR: ${{ inputs.output_dir }}
         MOBILE_ANALYSIS_RUN_UNLIGHTHOUSE: ${{ inputs.run_unlighthouse }}
+        MOBILE_ANALYSIS_REVISION: ${{ inputs.revision }}
       run: |
         args=(
           analyze
