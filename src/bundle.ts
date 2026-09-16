@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join, relative } from 'node:path';
+import { buildAgentFindings } from './agent-findings.js';
 import type { AnalysisReport } from './model.js';
 
 async function filesRecursively(root: string, current = root): Promise<string[]> {
@@ -46,6 +47,11 @@ export function renderSummary(report: AnalysisReport): string {
 export async function writeBundle(report: AnalysisReport, outputDir: string): Promise<void> {
   await mkdir(outputDir, { recursive: true });
   await writeFile(join(outputDir, 'analysis.json'), `${JSON.stringify(report, null, 2)}\n`, 'utf8');
+  await writeFile(
+    join(outputDir, 'agent-findings.json'),
+    `${JSON.stringify(buildAgentFindings(report), null, 2)}\n`,
+    'utf8',
+  );
   await writeFile(join(outputDir, 'environment.json'), `${JSON.stringify(report.environment, null, 2)}\n`, 'utf8');
   await writeFile(join(outputDir, 'summary.md'), renderSummary(report), 'utf8');
 
