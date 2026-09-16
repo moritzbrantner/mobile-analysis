@@ -17,6 +17,11 @@ on:
         required: false
         default: true
         type: boolean
+      revision:
+        description: Exact consumer Git revision represented by this deployed app.
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -27,6 +32,8 @@ jobs:
     steps:
       - name: Checkout consumer
         uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.revision || github.sha }}
 
       - name: Checkout exact mobile-analysis workflow revision
         uses: actions/checkout@v7
@@ -46,6 +53,7 @@ jobs:
           config_path: ${{ inputs.config_path }}
           output_dir: mobile-analysis-output
           run_unlighthouse: ${{ inputs.run_unlighthouse }}
+          revision: ${{ inputs.revision || github.sha }}
 
       - name: Upload evidence bundle
         if: always()
