@@ -12,6 +12,7 @@ import type {
 } from './model.js';
 
 export interface PlaywrightAnalysisResult {
+  status: 'passed' | 'failed';
   findings: Finding[];
   scenarios: ScenarioResult[];
 }
@@ -255,5 +256,10 @@ export async function runPlaywrightAnalysis(config: MobileAnalysisConfig, output
     }
   }
 
-  return { findings, scenarios: results };
+  const status = findings.some((finding) => finding.severity === 'error')
+    || results.some((scenario) => scenario.status === 'failed')
+    ? 'failed'
+    : 'passed';
+
+  return { status, findings, scenarios: results };
 }
