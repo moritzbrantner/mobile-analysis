@@ -38,7 +38,7 @@ export async function analyzeMobile(config: MobileAnalysisConfig, options: Analy
   findings.push(...playwright.findings);
   adapters.push({
     name: 'playwright',
-    status: playwright.scenarios.some((scenario) => scenario.status === 'failed') ? 'failed' : 'passed',
+    status: playwright.status,
     durationMs: Date.now() - playwrightStarted,
     details: `${playwright.scenarios.length} device/scenario run(s).`,
   });
