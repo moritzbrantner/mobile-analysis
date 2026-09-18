@@ -69,8 +69,7 @@ test('executes the same mobile flow on Chromium and WebKit', async () => {
 test('fails the Playwright adapter when error findings occur without a scenario exception', async () => {
   const errorHtml = `<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<style>html { min-width: 900px; }</style>
-<div>Overflow fixture</div>
+<div style="width: 2000px">Overflow fixture</div>
 <script>
   fetch('/drop').catch(() => {});
   setTimeout(() => { throw new Error('fixture page error'); }, 0);
