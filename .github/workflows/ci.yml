@@ -50,3 +50,14 @@ jobs:
           test -s action-output/analysis.json
           test -s action-output/summary.md
           node -e "const report=require('./action-output/analysis.json'); if(report.summary.errors!==0 || report.summary.scenariosFailed!==0) process.exit(1)"
+
+  merge-ready:
+    name: merge-ready
+    if: ${{ always() }}
+    needs: ["validate", "composite-action"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: moritzbrantner/reusable-workflows/.github/actions/merge-ready@b0f25f241d76af2584dfc9e375084ff5c5cb97da
+        with:
+          needs: ${{ toJSON(needs) }}
+          required: '["validate", "composite-action"]'
