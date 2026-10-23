@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '24'
+          node-version: lts/*
       - run: npm install
       - run: npx playwright install --with-deps chromium webkit
       - run: npm run ci
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
-          node-version: '24'
+          node-version: lts/*
       - name: Start fixture server
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 --directory tests/action-fixture > /tmp/mobile-analysis-fixture.log 2>&1 &
