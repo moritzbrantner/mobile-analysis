@@ -3,13 +3,16 @@
   "version": "0.1.0",
   "description": "Reusable mobile web and native analysis with portable evidence bundles.",
   "type": "module",
+  "files": ["dist", "README.md"],
   "bin": {
     "mobile-analysis": "dist/src/cli.js"
   },
   "exports": {
-    ".": "./dist/src/index.js"
+    ".": "./dist/src/index.js",
+    "./state-paths": "./dist/src/state-paths.js"
   },
   "scripts": {
+    "prepare": "npm run build",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "check:pages": "node --check pages/app.js",
