@@ -73,6 +73,38 @@ const config = await loadConfig('mobile-analysis.config.json');
 await analyzeMobile(config, { outputDir: 'mobile-analysis-output' });
 ```
 
+### Reuse XState paths in any Playwright suite
+
+The browser-neutral `generateStatePaths` export lets a consumer keep its existing
+Playwright driver and independent UI assertions. It includes nested states,
+guarded/context-dependent transitions, event payloads and self-loops. The default
+`pr` tier reaches every modeled state and edge with bounded paths; the optional
+`full` tier also generates simple paths. Both fail when `maxPaths` is exceeded.
+
+```ts
+import { createMachine } from 'xstate';
+import { generateStatePaths } from 'mobile-analysis/state-paths';
+
+const model = createMachine({
+  id: 'dialog', initial: 'closed', states: {
+    closed: { on: { OPEN: 'open' } },
+    open: { on: { CLOSE: 'closed' } },
+  },
+});
+const { initialState, paths, coverage } = generateStatePaths({
+  id: 'dialog', model, events: ['OPEN', 'CLOSE'], maxPaths: 8,
+});
+// Assert initialState and then, for each path step, perform the real UI event
+// and assert step.state through the consumer's existing browser fixtures.
+console.log(paths, coverage);
+```
+
+For reproducible cross-repository consumption, pin a Git commit in the consumer's
+development dependencies and allow its trusted `prepare` build. The Git package
+exports the compiled path helper without committing generated `dist/` files.
+Models and event drivers remain consumer-owned; the helper never imports the
+application's transition logic. Passing finite coverage does not prove all UI behavior.
+
 ### Generate mobile journeys from small XState models
 
 For stateful screens, keep an **independent expected-behavior model** in the consumer's test code. The `generateMachineScenarios` helper uses `xstate/graph` to produce a shortest path to each reachable state and an additional path for every modeled transition (including self-loops such as retry/reload). Every visited state must have observable assertions; paths execute as ordinary scenarios on both mobile browsers and, when configured, Maestro.
