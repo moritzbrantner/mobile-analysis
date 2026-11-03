@@ -9,5 +9,7 @@ export type {
 } from './agent-findings.js';
 export { loadConfig, normalizeConfig } from './config.js';
 export { buildMaestroFlow } from './maestro.js';
+export { generateMachineScenarios } from './state-machine.js';
+export type { MachineJourney, MachineCoverage, GeneratedMachineScenarios } from './state-machine.js';
 export { renderSummary, writeBundle } from './bundle.js';
 export * from './model.js';

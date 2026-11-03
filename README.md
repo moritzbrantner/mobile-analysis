@@ -73,6 +73,40 @@ const config = await loadConfig('mobile-analysis.config.json');
 await analyzeMobile(config, { outputDir: 'mobile-analysis-output' });
 ```
 
+### Generate mobile journeys from small XState models
+
+For stateful screens, keep an **independent expected-behavior model** in the consumer's test code. The `generateMachineScenarios` helper uses `xstate/graph` to produce a shortest path to each reachable state and an additional path for every modeled transition (including self-loops such as retry/reload). Every visited state must have observable assertions; paths execute as ordinary scenarios on both mobile browsers and, when configured, Maestro.
+
+```ts
+import { createMachine } from 'xstate';
+import { generateMachineScenarios, loadConfig, analyzeMobile } from 'mobile-analysis';
+
+const model = createMachine({
+  id: 'settings', initial: 'closed', states: {
+    closed: { on: { OPEN: 'open' } },
+    open: { on: { CLOSE: 'closed' } },
+  },
+});
+const { scenarios, coverage } = generateMachineScenarios({
+  id: 'settings', name: 'Settings', path: '/', model,
+  actions: {
+    OPEN: [{ action: 'tap', target: { role: 'button', name: 'Settings' } }],
+    CLOSE: [{ action: 'tap', target: { role: 'button', name: 'Close' } }],
+  },
+  assertions: {
+    closed: [{ action: 'expectVisible', target: { role: 'button', name: 'Settings' } }],
+    open: [{ action: 'expectVisible', target: { role: 'dialog', name: 'Settings' } }],
+  },
+  maxPaths: 20,
+});
+const config = await loadConfig('mobile-analysis.config.json');
+config.scenarios.push(...scenarios);
+console.log(coverage); // declared states, transitions and generated path count
+await analyzeMobile(config, { outputDir: 'mobile-analysis-output' });
+```
+
+Models use a finite number of atomic states; the generator rejects missing assertions or an exceeded path budget. It deliberately does not import application transition logic, generate unbounded event combinations, or claim exhaustive product coverage. The existing JSON scenario configuration and analysis report schema remain unchanged. Put models in opt-in/targeted acceptance runs; don't silently expand every consumer's mandatory CI.
+
 ## GitHub Actions
 
 The reusable workflow in `.github/workflows/analyze.yml` is designed for consumer repositories. It checks out the calling repository and this analyzer, installs pinned browser/audit tooling, executes the analysis against a deployed URL, and uploads the complete evidence bundle.
