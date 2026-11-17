@@ -24,7 +24,7 @@
     "node": ">=22"
   },
   "dependencies": {
-    "playwright": "1.65.0",
+    "playwright": "1.65.1",
     "xstate": "5.33.4"
   },
   "devDependencies": {
